@@ -1,0 +1,61 @@
+# [Created by task 2.5.1 5/4/2022 13:18:22]
+# Taskwarrior program configuration file.
+# For more documentation, see http://taskwarrior.org or try 'man task', 'man task-color',
+# 'man task-sync' or 'man taskrc'
+
+# Here is an example of entries that use the default, override and blank values
+#   variable=foo   -- By specifying a value, this overrides the default
+#   variable=      -- By specifying no value, this means no default
+#   #variable=foo  -- By commenting out the line, or deleting it, this uses the default
+
+# Use the command 'task show' to see all defaults and overrides
+
+# Files
+data.location=~/.task
+
+# Color theme (uncomment one to use)
+#include /usr/share/taskwarrior/light-16.theme
+#include /usr/share/taskwarrior/light-256.theme
+#include /usr/share/taskwarrior/dark-16.theme
+#include /usr/share/taskwarrior/dark-256.theme
+#include /usr/share/taskwarrior/dark-red-256.theme
+#include /usr/share/taskwarrior/dark-green-256.theme
+#include /usr/share/taskwarrior/dark-blue-256.theme
+#include /usr/share/taskwarrior/dark-violets-256.theme
+#include /usr/share/taskwarrior/dark-yellow-green.theme
+#include /usr/share/taskwarrior/dark-gray-256.theme
+include /usr/share/taskwarrior/dark-gray-blue-256.theme
+#include /usr/share/taskwarrior/solarized-dark-256.theme
+#include /usr/share/taskwarrior/solarized-light-256.theme
+#include /usr/share/taskwarrior/no-color.theme
+
+uda.reviewed.type=date
+uda.reviewed.label=Reviewed
+report._reviewed.description=Tasksh review report.  Adjust the filter to your needs.
+report._reviewed.columns=uuid
+report._reviewed.sort=reviewed+,modified+
+report._reviewed.filter=( reviewed.none: or reviewed.before:now-6days ) and ( +PENDING or +WAITING )
+news.version=2.6.0
+color.tag.pagos=bold magenta
+color.tag.factura=cyan
+context.trabajo.read=+trabajo or +factura or +pagos or +cotizacion or +salud -hobby
+context.trabajo.write=+trabajo
+
+# Values related to taskwarrior-tui
+#uda.taskwarrior-tui.selection.reverse=yes
+#uda.taskwarrior-tui.task-report.looping=false
+#uda.taskwarrior-tui.task-report.prompt-on-delete=true
+#uda.taskwarrior-tui.task-report.prompt-on-done=true
+
+# Custom reports
+report.simple.description=vista simplificada para pantallas reducidas
+report.simple.columns=id,start.age,project,tags,scheduled.countdown,due.relative,description
+report.simple.labels=ID,A,Project,Tag,Sched,Due,Description
+report.simple.sort=urgency-
+report.simple.filter=status:pending -WAITING limit:page
+
+report.simpler.description=vista simplificada para pantallas reducidas
+report.simpler.columns=id,start.age,project,tags.count,scheduled.countdown,due.relative,description
+report.simpler.labels=ID,A,Project,Tag,Sched,Due,Description
+report.simpler.sort=urgency-
+report.simpler.filter=status:pending -WAITING limit:page

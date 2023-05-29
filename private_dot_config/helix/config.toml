@@ -1,0 +1,5 @@
+theme = "ayu_mirage"
+
+[editor]
+line-number = "absolute"
+mouse = true
