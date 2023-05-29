@@ -452,8 +452,8 @@ font:
 #   - (Windows) powershell
 shell:
   program: /usr/bin/fish
-#  args:
-#    - --login
+  args:
+    - -c tmux
 
 # Startup directory
 #
