@@ -1,0 +1,29 @@
+[directory]
+truncation_length = 4
+truncation_symbol = '…/'
+
+[directory.substitutions]
+"Documents" = " "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
+"Videos" = " "
+"/mnt/auto/buho/remote/proyectos" = "🏗️ 🦉"
+"/mnt/auto/buho/remote" = "🦉" 
+"/mnt/auto/nuc/remote" = "👾"
+
+[nodejs]
+detect_extensions = []
+
+[custom.home]
+when = ''' test "$HOME" = "$PWD" '''
+style = "bold cyan"
+#symbol = ' '
+symbol = '🏠 '
+format = '[$symbol]($style)'
+
+[java]
+disabled = true
+[lua]
+disabled = true
+
