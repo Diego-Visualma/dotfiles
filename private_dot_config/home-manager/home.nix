@@ -22,7 +22,6 @@
     # # "Hello, world!" when run.
     # pkgs.hello
    
-    pkgs.fish
     pkgs.starship
     pkgs.htop
     pkgs.zoxide
@@ -35,7 +34,6 @@
     pkgs.gotop
     pkgs.neovim
     pkgs.alacritty
-    pkgs.emacs
     pkgs.graphviz
     pkgs.helix
     pkgs.ffmpeg_6-full
@@ -87,4 +85,26 @@
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
+
+  programs.fish = {
+    enable = true;
+    shellInit = "
+      starship init fish | source
+      zoxide init fish | source
+    ";
+    plugins = [ 
+      { name = "puffer"; src = pkgs.fishPlugins.puffer.src; } 
+      { name = "fzf-fish"; src = pkgs.fishPlugins.fzf-fish.src; } 
+      { name = "sponge"; src = pkgs.fishPlugins.sponge.src; } 
+    ];
+
+  };
+
+  programs.emacs = {
+    enable = true;
+  };
+
+  services.emacs = {
+    enable = true;
+  };
 }
