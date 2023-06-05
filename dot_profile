@@ -25,8 +25,15 @@ fi
 if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
-. "$HOME/.cargo/env"
 
-XDG_DATA_DIRS="$HOME/.nix-profile/share:${XDG_DATA_DIRS}"
+# include cargo environment variables if rust is installed
+if [ -f "$HOME/.cargo/env" ] ; then
+    . "$HOME/.cargo/env"
+fi
 
-. "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
+# show nix applications in launchers and load nix env vars
+# if nix is installed
+if [ -d "$HOME/.nix-profile" ] ; then
+    XDG_DATA_DIRS="$HOME/.nix-profile/share:${XDG_DATA_DIRS}"
+    . "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
+fi

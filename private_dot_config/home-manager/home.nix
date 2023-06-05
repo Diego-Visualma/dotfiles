@@ -39,6 +39,8 @@
     pkgs.tealdeer
     pkgs.djv
     pkgs.ranger
+    pkgs.taskwarrior
+    pkgs.vit
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -184,6 +186,26 @@
   programs.neovim = {
     enable = true;
     defaultEditor = true;
+    plugins = with pkgs.vimPlugins; [
+      vim-nix
+      yankring
+      nvim-lspconfig
+      nvim-treesitter
+      nvim-tree-lua
+      nvim-cmp
+      ale
+      nord-nvim
+      nerdcommenter
+      indent-blankline-nvim
+      nvim-web-devicons
+      barbar-nvim
+      telescope-nvim
+      telescope-zoxide
+    ];
+  };
+
+  programs.rbw = {
+    enable = true;
   };
 
   programs.helix = {
