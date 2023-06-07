@@ -41,6 +41,8 @@
     pkgs.ranger
     pkgs.taskwarrior
     pkgs.vit
+    pkgs.cmus
+    pkgs.tree-sitter
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -55,7 +57,11 @@
     #   echo "Hello, ${config.home.username}!"
     # '')
     (pkgs.writeShellScriptBin "alacritty_gl" ''
-	__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia nixGL alacritty
+	WINIT_X11_SCALE_FACTOR=1 __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia nixGL alacritty
+    '')
+
+    (pkgs.writeShellScriptBin "alacritty_gl_tmux" ''
+	WINIT_X11_SCALE_FACTOR=1 __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia nixGL alacritty -e tmux
     '')
 
   ];
@@ -152,11 +158,11 @@
       };
       font.bold = {
         family = "FiraCode Nerd Font";
-	style = "SemiBold";
+	style = "Bold";
       };
       font.size = 12.0;
       shell.program = "/home/diego/.nix-profile/bin/fish";
-      shell.args = ["-c tmux"];
+      #shell.args = ["-c tmux"];
       # Nord theme
       colors = {
         primary.background = "0x2E3440";
@@ -186,6 +192,39 @@
   programs.neovim = {
     enable = true;
     defaultEditor = true;
+    extraConfig = "
+      set number
+    ";
+    extraLuaConfig = "
+      vim.g.loaded_netrw = 1
+      vim.g.loaded_netrwPlugin = 1
+      vim.opt.termguicolors = true
+      vim.cmd[[colorscheme nord]]
+      local function my_on_attach(bufnr)
+        local api = require 'nvim-tree.api'
+        local function opts(desc)
+          return { desc = 'nvim-tree: ' .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+        end
+        api.config.mappings.default_on_attach(bufnr)
+        vim.keymap.set('n', '<C-t>', api.tree.change_root_to_parent,        opts('Up'))
+        vim.keymap.set('n', '?',     api.tree.toggle_help,                  opts('Help'))
+      end
+      require('nvim-tree').setup{
+        on_attach = my_on_attach,
+      }
+      require('lualine').setup {
+        options = {
+          theme = 'nord'
+        }
+      }
+      require('telescope').setup()
+      local builtin = require('telescope.builtin')
+      vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
+      vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
+      vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
+      vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
+      require('telescope').load_extension('zoxide')
+    ";
     plugins = with pkgs.vimPlugins; [
       vim-nix
       yankring
@@ -198,9 +237,11 @@
       nerdcommenter
       indent-blankline-nvim
       nvim-web-devicons
+      gitsigns-nvim
       barbar-nvim
       telescope-nvim
       telescope-zoxide
+      lualine-nvim
     ];
   };
 
@@ -225,5 +266,20 @@
 
   services.emacs = {
     enable = true;
+    #client.arguments = [ "-c" "-a \"emacs\"" ];
   };
+
+  systemd.user.services = {
+    tmux-daemon = {
+      Unit = {
+        Description= "Start tmux in detached session";
+      };
+      Service = {
+        Type = "forking";
+        ExecStart = "/home/diego/.nix-profile/bin/tmux new-session -s %u -d";
+        ExecStop = "/home/diego/.nix-profile/bin/tmux kill-session -t %u";
+      };
+    };
+  };
+
 }

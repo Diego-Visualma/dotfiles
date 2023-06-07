@@ -50,3 +50,4 @@
 ;(unpin! t)
 
 (package! highlight-indent-guides)
+(package! nix-mode)

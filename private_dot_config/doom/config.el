@@ -81,6 +81,9 @@
   :config
   (setq highlight-indent-guides-method 'bitmap))
 
+(use-package! nix-mode
+  :mode ("\\.nix\\'" "\\.nix.in\\'"))
+
 (after! org
   (setq org-roam-directory "~/org/roam")
   (setq org-roam-index-file "~/org/roam/index.org"))
