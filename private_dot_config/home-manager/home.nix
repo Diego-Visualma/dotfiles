@@ -44,6 +44,12 @@
     pkgs.cmus
     pkgs.tree-sitter
 
+    pkgs.qtile
+    pkgs.picom
+    pkgs.rofi
+    pkgs.nitrogen
+    pkgs.dunst
+
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
     # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
@@ -109,6 +115,9 @@
       { name = "fzf-fish"; src = pkgs.fishPlugins.fzf-fish.src; } 
       { name = "sponge"; src = pkgs.fishPlugins.sponge.src; } 
     ];
+    shellAliases = {
+      sudo = "sudo --preserve-env=PATH env";
+    };
 
   };
 
