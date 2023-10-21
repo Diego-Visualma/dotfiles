@@ -1,5 +1,20 @@
-{ config, pkgs, ... }:
-
+{ pkgs, lib, config, ... }:
+let
+  unstable = import <nixos-unstable> {}; #a nix-channel called nixos-unstable has to exist
+  # Minimal laTex configuration for emacs inheriting from schemes
+  tex = (pkgs.texlive.combine {
+    inherit (pkgs.texlive) scheme-basic
+      dvisvgm dvipng # for preview and export as html
+      wrapfig amsmath ulem hyperref capt-of;
+      #(setq org-latex-compiler "lualatex")
+      #(setq org-preview-latex-default-process 'dvisvgm)
+  });
+  # Custom OpenUSD package while oficial is included
+  openusd = with import <nixpkgs> {};
+     (python3Packages.callPackage /home/diego/dev/OpenUSD/openusd.nix {
+       alembic = pkgs.alembic;
+     });
+in
 {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
@@ -15,59 +30,110 @@
   # release notes.
   home.stateVersion = "23.05"; # Please read the comment before changing.
 
+  #Overlay in order to get some packages from unstable
+  nixpkgs.overlays = [
+    (final: previous: {
+      leftwm = unstable.leftwm;
+      picom-next = unstable.picom-next;
+      qtile = unstable.qtile;
+      hyprland = unstable.hyprland;
+    })
+  ];
   # The home.packages option allows you to install Nix packages into your
   # environment.
-  home.packages = [
-    # # Adds the 'hello' command to your environment. It prints a friendly
-    # # "Hello, world!" when run.
-    # pkgs.hello
-   
-    pkgs.starship
-    pkgs.htop
-    pkgs.gotop
-    pkgs.ncdu
-    pkgs.duf
-    pkgs.zoxide
-    pkgs.fzf
-    pkgs.fd
-    pkgs.exa
-    pkgs.bat
-    pkgs.ripgrep
-    pkgs.graphviz
-    pkgs.ffmpeg_6-full
-    pkgs.mpv
-    pkgs.tealdeer
-    pkgs.djv
-    pkgs.ranger
-    pkgs.taskwarrior
-    pkgs.vit
-    pkgs.cmus
-    pkgs.tree-sitter
+  home.packages = with pkgs; [
 
-    pkgs.qtile
-    pkgs.picom
-    pkgs.rofi
-    pkgs.nitrogen
-    pkgs.dunst
+    htop
+    gotop
+    ncdu
+    duf
+    zoxide
+    fzf
+    fd
+    exa
+    bat
+    ripgrep
+    graphviz
+    # ffmpeg_6-full
+    mpv
+    tealdeer
+    djv
+    ranger
+    taskwarrior
+    vit
+    cmus
+    tree-sitter
+    just
+    #hledger installed from source
+    #hledger
+    #hledger-web
+    #hledger-ui
+
+    tex
+    aspell
+    aspellDicts.en
+    aspellDicts.en-science
+    aspellDicts.en-computers
+    aspellDicts.es
+    hunspell
+    wordnet
+
+    picom-next
+    leftwm
+    qtile
+    rofi
+    nitrogen
+    dunst
+    hyprland
+    seatd
+    xdg-desktop-portal-hyprland
+    waybar
+    qt6.qtwayland
+    libsForQt5.qt5.qtwayland
+    libsForQt5.qt5ct
+    libva
+
+    openusd
+
+    gnat13
+    #gcc
+    libcxx
+    libffi
+    gmpxx
+    gmp
+    pixz
+    xz
+    zlib
+    gnupg
+    haskell.compiler.ghc945 #lts 21.1
+    stack
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
     # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
+    (nerdfonts.override { fonts = [ "FiraCode" "NerdFontsSymbolsOnly" ]; })
     # # fonts?
-    (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; })
 
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your
     # # environment:
-    # (pkgs.writeShellScriptBin "my-hello" ''
+    # (writeShellScriptBin "my-hello" ''
     #   echo "Hello, ${config.home.username}!"
     # '')
-    (pkgs.writeShellScriptBin "alacritty_gl" ''
+    (writeShellScriptBin "alacritty_gl" ''
 	WINIT_X11_SCALE_FACTOR=1 __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia nixGL alacritty
     '')
 
-    (pkgs.writeShellScriptBin "alacritty_gl_tmux" ''
+    (writeShellScriptBin "alacritty_gl_tmux" ''
 	WINIT_X11_SCALE_FACTOR=1 __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia nixGL alacritty -e tmux
+    '')
+
+    (writeShellScriptBin "nixgl_update" ''
+        nix-channel --update && nix-env -iA nixgl.auto.nixGLDefault
+    '')
+
+    (writeShellScriptBin "org-capture-fix" ''
+   emacsclient --eval "(progn (load-theme 'doom-one t) (+org-capture/open-frame \"$1\" \"$2\"))"
     '')
 
   ];
@@ -111,14 +177,50 @@
       zoxide init fish | source
     ";
     plugins = [ 
-      { name = "puffer"; src = pkgs.fishPlugins.puffer.src; } 
-      { name = "fzf-fish"; src = pkgs.fishPlugins.fzf-fish.src; } 
-      { name = "sponge"; src = pkgs.fishPlugins.sponge.src; } 
+      { name = "puffer"; src = pkgs.fishPlugins.puffer.src; }
+      { name = "fzf-fish"; src = pkgs.fishPlugins.fzf-fish.src; }
+      { name = "sponge"; src = pkgs.fishPlugins.sponge.src; }
     ];
     shellAliases = {
       sudo = "sudo --preserve-env=PATH env";
+      em = "emacsclient -c -a ''";
+      emt = "emacsclient -nw";
     };
+  };
 
+  programs.starship = {
+    enable = true;
+    enableBashIntegration = true;
+    enableFishIntegration = true;
+    settings = {
+      directory = {
+        truncation_length = 4;
+        truncation_symbol = "…/";
+      };
+      directory.substitutions = {
+        "Documents" = " ";
+        "Downloads" = " ";
+        "Music" = " ";
+        "Pictures" = " ";
+        "Videos" = " ";
+        "/mnt/auto/buho/remote/proyectos" = "🏗️ 🦉";
+        "/mnt/auto/buho/remote" = "🦉";
+        "/mnt/auto/nuc/remote" = "👾";
+      };
+      custom.home = {
+        when = ''
+               test "{$HOME}" = "{$PWD}"
+             '';
+        style = "bold cyan";
+        #symbol = ' ';
+        symbol = "🏠 ";
+        format = "[$symbol]($style)";
+      };
+      nodejs = { detect_extensions = []; };
+      java = { disabled = true; };
+      lua = { disabled = true; };
+      perl = { detect_extensions = ["pl" "pm"]; };
+    };
   };
 
   programs.tmux = {
@@ -147,9 +249,9 @@
     ";
     plugins = with pkgs; [
     	tmuxPlugins.sensible 
-	tmuxPlugins.nord 
-	tmuxPlugins.prefix-highlight 
-	tmuxPlugins.tmux-fzf 
+      tmuxPlugins.nord
+      tmuxPlugins.prefix-highlight
+      tmuxPlugins.tmux-fzf
     ];
   };
 
@@ -158,9 +260,9 @@
     settings = {
       window.padding = {
         x = 5;
-	y = 5;
+        y = 5;
       };
-      window.opacity = 0.95;
+      window.opacity = 0.94;
       font.normal = {
         family = "FiraCode Nerd Font";
 	style = "Regular";
@@ -175,23 +277,23 @@
       # Nord theme
       colors = {
         primary.background = "0x2E3440";
-	primary.foreground = "0xD8DEE9";
-	normal.black = "0x3B4252";
-	normal.red = "0xBF616A";
-	normal.green = "0xA3BE8C";
-	normal.yellow = "0xEBCB8B";
-	normal.blue = "0x81A1C1";
-	normal.magenta = "0xB48EAD";
-	normal.cyan = "0x88C0D0";
-	normal.white = "0xE5E9F0";
-	bright.black = "0x4C566A";
-	bright.red = "0xBF616A";
-	bright.green = "0xA3BE8C";
-	bright.yellow = "0xEBCB8B";
-	bright.blue = "0x81A1C1";
-	bright.magenta = "0xB48EAD";
-	bright.cyan = "0x8FBCBB";
-	bright.white = "0xECEFF4";
+        primary.foreground = "0xD8DEE9";
+        normal.black = "0x3B4252";
+        normal.red = "0xBF616A";
+        normal.green = "0xA3BE8C";
+        normal.yellow = "0xEBCB8B";
+        normal.blue = "0x81A1C1";
+        normal.magenta = "0xB48EAD";
+        normal.cyan = "0x88C0D0";
+        normal.white = "0xE5E9F0";
+        bright.black = "0x4C566A";
+        bright.red = "0xBF616A";
+        bright.green = "0xA3BE8C";
+        bright.yellow = "0xEBCB8B";
+        bright.blue = "0x81A1C1";
+        bright.magenta = "0xB48EAD";
+        bright.cyan = "0x8FBCBB";
+        bright.white = "0xECEFF4";
       };
       # For importing other themes:
       #import = [ "{path-to-theme}.yml" ];
@@ -200,7 +302,6 @@
 
   programs.neovim = {
     enable = true;
-    defaultEditor = true;
     extraConfig = "
       set number
     ";
@@ -264,18 +365,20 @@
       theme = "ayu_mirage";
       editor = {
         line-number = "absolute";
-	mouse = true;
+        mouse = true;
       };
     };
   };
 
   programs.emacs = {
     enable = true;
+    extraPackages = epkgs: [ epkgs.vterm epkgs.nerd-icons epkgs.emojify ];
   };
 
   services.emacs = {
     enable = true;
-    #client.arguments = [ "-c" "-a \"emacs\"" ];
+    defaultEditor = true;
+    startWithUserSession = true;
   };
 
   systemd.user.services = {
@@ -287,6 +390,31 @@
         Type = "forking";
         ExecStart = "/home/diego/.nix-profile/bin/tmux new-session -s %u -d";
         ExecStop = "/home/diego/.nix-profile/bin/tmux kill-session -t %u";
+      };
+    };
+  };
+
+  programs.nnn = {
+    enable = true;
+    package = pkgs.nnn.override ({ withNerdIcons = true; });
+    bookmarks = {
+      d = "~/Documents";
+      D = "~/Downloads";
+      p = "~/Pictures";
+      v = "~/Videos";
+    };
+    extraPackages = with pkgs; [ ffmpegthumbnailer mediainfo sxiv ];
+    plugins = {
+      src = (pkgs.fetchFromGitHub {
+        owner = "jarun";
+        repo = "nnn";
+        rev = "v4.0";
+        sha256 = "sha256-Hpc8YaJeAzJoEi7aJ6DntH2VLkoR6ToP6tPYn3llR7k=";
+      }) + "/plugins";
+      mappings = {
+        c = "fzcd";
+        f = "finder";
+        v = "imgview";
       };
     };
   };

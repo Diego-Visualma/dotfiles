@@ -49,5 +49,18 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
 
-(package! highlight-indent-guides)
-(package! nix-mode)
+;;(package! highlight-indent-guides)
+;;(package! nix-mode)
+
+;; org-roam-ui
+(unpin! org-roam)
+(package! org-roam-ui)
+
+(package! org-super-agenda)
+(package! org-ql)
+(package! consult-org-roam)
+(package! org-gtd)
+
+(package! zoxide)
+(package! hledger-mode)
+(package! flycheck-hledger)

@@ -6,8 +6,8 @@
 
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets. It is optional.
-(setq user-full-name "John Doe"
-      user-mail-address "john@doe.com")
+(setq user-full-name "Diego Mora"
+      user-mail-address "mora@visualma.com")
 
 ;; Doom exposes five (optional) variables for controlling fonts in Doom:
 ;;
@@ -81,9 +81,120 @@
   :config
   (setq highlight-indent-guides-method 'bitmap))
 
-(use-package! nix-mode
-  :mode ("\\.nix\\'" "\\.nix.in\\'"))
+;; Nix is now a supported language in init.el
+;;(use-package! nix-mode
+;; :mode ("\\.nix\\'" "\\.nix.in\\'"))
 
 (after! org
+  (setq org-agenda-files '("~/org/agenda.org" "~/org/todo.org" "~/org/gtd/"))
   (setq org-roam-directory "~/org/roam")
-  (setq org-roam-index-file "~/org/roam/index.org"))
+  (setq org-roam-index-file "~/org/roam/index.org")
+  ;; Variables for latex taken from recommendation in nix minimal configuration
+  (setq org-latex-compiler "lualatex")
+  (setq org-preview-latex-default-process 'dvisvgm))
+
+(setq company-global-modes '(not org-mode))
+
+(setq doom-font (font-spec :family "FiraCode Nerd Font Mono" :size 14)
+      doom-unicode-font (font-spec :family "Symbols Nerd Font Mono" :size 14)
+      doom-variable-pitch-font (font-spec :family "FiraCode Nerd Font Mono" :size 14))
+
+(use-package! org-super-agenda
+  :after org-agenda
+  :config
+  (setq org-super-agenda-groups '((:auto-dir-name t)))
+  (org-super-agenda-mode))
+
+(use-package! org-ql
+  :after org)
+
+(use-package consult-org-roam
+   :after org-roam
+   :init
+   (require 'consult-org-roam)
+   ;; Activate the minor mode
+   (consult-org-roam-mode 1)
+   :custom
+   ;; Use `ripgrep' for searching with `consult-org-roam-search'
+   (consult-org-roam-grep-func #'consult-ripgrep)
+   ;; Configure a custom narrow key for `consult-buffer'
+   (consult-org-roam-buffer-narrow-key ?r)
+   ;; Display org-roam buffers right after non-org-roam buffers
+   ;; in consult-buffer (and not down at the bottom)
+   (consult-org-roam-buffer-after-buffers t)
+   ;; Eventually suppress previewing for certain functions
+   (consult-customize
+    consult-org-roam-forward-links
+    :preview-key "M-.")
+   :bind
+   ;; Define some convenient keybindings as an addition
+   ("C-c n e" . consult-org-roam-file-find)
+   ("C-c n b" . consult-org-roam-backlinks)
+   ("C-c n l" . consult-org-roam-forward-links)
+   ("C-c n r" . consult-org-roam-search))
+
+(setq org-gtd-update-ack "3.0.0")
+(use-package! org-gtd
+  :after org
+  :config
+  (setq org-gtd-directory "~/org/gtd")
+  (setq org-edna-use-inheritance t)
+  (org-edna-mode)
+  (map! :leader
+        (:prefix ("d" . "org-gtd")
+         :desc "Capture"        "c"  #'org-gtd-capture
+         :desc "Engage"         "e"  #'org-gtd-engage
+         :desc "Process inbox"  "p"  #'org-gtd-process-inbox
+         :desc "Show all next"  "n"  #'org-gtd-show-all-next
+         :desc "Stuck projects" "s"  #'org-gtd-review-stuck-projects))
+  (map! :map org-gtd-clarify-map
+        :desc "Organize this item" "C-c c" #'org-gtd-organize))
+
+(use-package! websocket
+  :after org-roam)
+
+(use-package! org-roam-ui
+  :after org-roam
+  :config
+  (setq org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start t))
+
+(after! ispell
+  (setenv "LANG" "en_US.UTF-8")
+  (setq ispell-program-name "hunspell")
+  (ispell-set-spellchecker-params)
+  (ispell-hunspell-add-multi-dic "es_MX,en_US")
+  (setq ispell-dictionary "es_MX,en_US"))
+
+(require 'org-protocol)
+
+(use-package! hledger-mode
+  :after org
+  :config
+  (add-to-list 'auto-mode-alist '("\\.journal\\'" . hledger-mode))
+  (setq hledger-jfile "~/.hledger.journal")
+  (add-to-list 'company-backends 'hledger-company)
+  (add-hook 'hledger-mode-hook
+            (lambda ()
+              (setq-local ac-sources '(hledger-ac-source))))
+  )
+
+(use-package hledger-input
+  :after hledger-mode
+  :bind (("C-c e" . hledger-capture)
+         :map hledger-input-mode-map
+         ("C-c C-b" . popup-balance-at-point))
+  :preface
+  (defun popup-balance-at-point ()
+    "Show balance for account at point in a popup."
+    (interactive)
+    (if-let ((account (thing-at-point 'hledger-account)))
+        (message (hledger-shell-command-to-string (format " balance -N %s "
+                                                          account)))
+      (message "No account at point")))
+  )
+
+(use-package! flycheck-hledger
+  :after (flycheck hledger-mode))
