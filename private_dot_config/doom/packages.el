@@ -49,10 +49,7 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
 
-;;(package! highlight-indent-guides)
-;;(package! nix-mode)
 
-;; org-roam-ui
 (unpin! org-roam)
 (package! org-roam-ui)
 
@@ -64,3 +61,9 @@
 (package! zoxide)
 (package! hledger-mode)
 (package! flycheck-hledger)
+
+(package! lister)
+(package! delve
+  :recipe (:host github
+           :repo "publicimageltd/delve"
+           :type git))

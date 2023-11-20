@@ -87,8 +87,6 @@
 
 (after! org
   (setq org-agenda-files '("~/org/agenda.org" "~/org/todo.org" "~/org/gtd/"))
-  (setq org-roam-directory "~/org/roam")
-  (setq org-roam-index-file "~/org/roam/index.org")
   ;; Variables for latex taken from recommendation in nix minimal configuration
   (setq org-latex-compiler "lualatex")
   (setq org-preview-latex-default-process 'dvisvgm))
@@ -107,6 +105,18 @@
 
 (use-package! org-ql
   :after org)
+
+(use-package! org-roam
+  :after org
+  :config
+  (setq org-roam-directory "~/org/roam")
+  (setq org-roam-index-file "~/org/roam/index.org")
+  (setq org-roam-dailies-directory "~/org/roam/journals")
+  (setq org-roam-capture-templates '(
+         ("d" "default" plain "%?"
+          :target  (file+head "pages/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+          :unnarrowed t)
+        )))
 
 (use-package consult-org-roam
    :after org-roam
@@ -160,6 +170,12 @@
         org-roam-ui-follow t
         org-roam-ui-update-on-save t
         org-roam-ui-open-on-start t))
+(use-package! org-journal
+  :after org
+  :config
+  (setq org-journal-dir "~/org/journal/"
+        org-journal-date-format "%A, %d %B %Y"
+        org-journal-file-type 'monthly))
 
 (after! ispell
   (setenv "LANG" "en_US.UTF-8")
@@ -174,7 +190,7 @@
   :after org
   :config
   (add-to-list 'auto-mode-alist '("\\.journal\\'" . hledger-mode))
-  (setq hledger-jfile "~/.hledger.journal")
+  (setq hledger-jfile "~/finance/current.journal")
   (add-to-list 'company-backends 'hledger-company)
   (add-hook 'hledger-mode-hook
             (lambda ()
@@ -198,3 +214,13 @@
 
 (use-package! flycheck-hledger
   :after (flycheck hledger-mode))
+
+(use-package delve
+  :after (org-roam)
+  :demand t
+  :bind
+  (("<f12>" . delve))
+  :config
+  (setq delve-dashboard-tags '("Tag1" "Tag2"))
+  (add-hook #'delve-mode-hook #'delve-compact-view-mode)
+  (delve-global-minor-mode))

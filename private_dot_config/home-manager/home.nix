@@ -33,6 +33,8 @@ in
   #Overlay in order to get some packages from unstable
   nixpkgs.overlays = [
     (final: previous: {
+      distrobox = unstable.distrobox;
+      blender = unstable.blender;
       leftwm = unstable.leftwm;
       picom-next = unstable.picom-next;
       qtile = unstable.qtile;
@@ -43,6 +45,7 @@ in
   # environment.
   home.packages = with pkgs; [
 
+    #cli-programs
     htop
     gotop
     ncdu
@@ -53,22 +56,29 @@ in
     exa
     bat
     ripgrep
-    graphviz
-    # ffmpeg_6-full
-    mpv
     tealdeer
-    djv
     ranger
+    just
+    podman
+    distrobox
+
+
     taskwarrior
     vit
-    cmus
-    tree-sitter
-    just
     #hledger installed from source
     #hledger
     #hledger-web
     #hledger-ui
 
+    # ffmpeg_6-full
+    mpv
+    djv
+    blender
+    cmus
+
+    # for Emacs
+    tree-sitter
+    graphviz
     tex
     aspell
     aspellDicts.en
@@ -78,6 +88,7 @@ in
     hunspell
     wordnet
 
+    # Testing tiling WMs
     picom-next
     leftwm
     qtile
@@ -95,6 +106,7 @@ in
 
     openusd
 
+    # For building hledger from source
     gnat13
     #gcc
     libcxx
@@ -134,6 +146,14 @@ in
 
     (writeShellScriptBin "org-capture-fix" ''
    emacsclient --eval "(progn (load-theme 'doom-one t) (+org-capture/open-frame \"$1\" \"$2\"))"
+    '')
+
+    (writeShellScriptBin "set-monitor-alienware" ''
+      xrandr --output HDMI-0 --off --output DP-0 --mode 3440x1440 --rate 174.96
+    '')
+
+    (writeShellScriptBin "set-monitor-secondary" ''
+      xrandr --output DP-0 --off --output HDMI-0 --mode 1920x1080 --rate 59.94
     '')
 
   ];
