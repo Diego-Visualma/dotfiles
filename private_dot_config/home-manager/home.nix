@@ -31,10 +31,17 @@ in
   home.stateVersion = "23.05"; # Please read the comment before changing.
 
   #Overlay in order to get some packages from unstable
+  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.allowUnfreePredicate = (_: true);
   nixpkgs.overlays = [
     (final: previous: {
       distrobox = unstable.distrobox;
+      #blender = (unstable.blender.override { cudaSupport = true; });
       blender = unstable.blender;
+      hledger = unstable.hledger;
+      hledger-ui = unstable.hledger-ui;
+      hledger-web = unstable.hledger-web;
+      hledger-iadd = unstable.hledger-iadd;
       leftwm = unstable.leftwm;
       picom-next = unstable.picom-next;
       qtile = unstable.qtile;
@@ -59,21 +66,21 @@ in
     tealdeer
     ranger
     just
-    podman
-    distrobox
+    #podman
+    #distrobox
 
-
+    # cli productivity
     taskwarrior
     vit
-    #hledger installed from source
     #hledger
     #hledger-web
     #hledger-ui
+    #hledger-iadd
 
     # ffmpeg_6-full
     mpv
     djv
-    blender
+    #blender
     cmus
 
     # for Emacs
@@ -95,30 +102,9 @@ in
     rofi
     nitrogen
     dunst
-    hyprland
-    seatd
-    xdg-desktop-portal-hyprland
-    waybar
-    qt6.qtwayland
-    libsForQt5.qt5.qtwayland
-    libsForQt5.qt5ct
-    libva
 
     openusd
-
-    # For building hledger from source
-    gnat13
-    #gcc
-    libcxx
-    libffi
-    gmpxx
-    gmp
-    pixz
-    xz
-    zlib
-    gnupg
-    haskell.compiler.ghc945 #lts 21.1
-    stack
+    #chromium
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -142,6 +128,10 @@ in
 
     (writeShellScriptBin "nixgl_update" ''
         nix-channel --update && nix-env -iA nixgl.auto.nixGLDefault
+    '')
+
+    (writeShellScriptBin "blender_gl" ''
+        nixGL blender "$@"
     '')
 
     (writeShellScriptBin "org-capture-fix" ''
@@ -189,6 +179,20 @@ in
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
+
+  xdg.desktopEntries = {
+    blender = {
+      name = "Blender";
+      genericName = "3D modeler";
+      comment = "(nixGL) 3D modeling, animation, rendering and post-production";
+      exec = "nixGL blender %f";
+      icon = "blender";
+      terminal = false;
+      type = "Application";
+      categories = ["Graphics"];
+      mimeType = ["application/x-blender"];
+    };
+  };
 
   programs.fish = {
     enable = true;
@@ -318,61 +322,6 @@ in
       # For importing other themes:
       #import = [ "{path-to-theme}.yml" ];
     };
-  };
-
-  programs.neovim = {
-    enable = true;
-    extraConfig = "
-      set number
-    ";
-    extraLuaConfig = "
-      vim.g.loaded_netrw = 1
-      vim.g.loaded_netrwPlugin = 1
-      vim.opt.termguicolors = true
-      vim.cmd[[colorscheme nord]]
-      local function my_on_attach(bufnr)
-        local api = require 'nvim-tree.api'
-        local function opts(desc)
-          return { desc = 'nvim-tree: ' .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
-        end
-        api.config.mappings.default_on_attach(bufnr)
-        vim.keymap.set('n', '<C-t>', api.tree.change_root_to_parent,        opts('Up'))
-        vim.keymap.set('n', '?',     api.tree.toggle_help,                  opts('Help'))
-      end
-      require('nvim-tree').setup{
-        on_attach = my_on_attach,
-      }
-      require('lualine').setup {
-        options = {
-          theme = 'nord'
-        }
-      }
-      require('telescope').setup()
-      local builtin = require('telescope.builtin')
-      vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
-      vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
-      vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
-      vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
-      require('telescope').load_extension('zoxide')
-    ";
-    plugins = with pkgs.vimPlugins; [
-      vim-nix
-      yankring
-      nvim-lspconfig
-      nvim-treesitter
-      nvim-tree-lua
-      nvim-cmp
-      ale
-      nord-nvim
-      nerdcommenter
-      indent-blankline-nvim
-      nvim-web-devicons
-      gitsigns-nvim
-      barbar-nvim
-      telescope-nvim
-      telescope-zoxide
-      lualine-nvim
-    ];
   };
 
   programs.rbw = {

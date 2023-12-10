@@ -61,6 +61,7 @@
 (package! zoxide)
 (package! hledger-mode)
 (package! flycheck-hledger)
+(package! just-mode)
 
 (package! lister)
 (package! delve
