@@ -10,10 +10,10 @@ let
       #(setq org-preview-latex-default-process 'dvisvgm)
   });
   # Custom OpenUSD package while oficial is included
-  openusd = with import <nixpkgs> {};
-     (python3Packages.callPackage /home/diego/dev/OpenUSD/openusd.nix {
-       alembic = pkgs.alembic;
-     });
+  #openusd = with import <nixpkgs> {};
+  #   (python3Packages.callPackage /home/diego/dev/OpenUSD/openusd.nix {
+  #     alembic = pkgs.alembic;
+  #   });
 in
 {
   # Home Manager needs a bit of information about you and the paths it should
@@ -44,8 +44,9 @@ in
       hledger-iadd = unstable.hledger-iadd;
       leftwm = unstable.leftwm;
       picom-next = unstable.picom-next;
-      qtile = unstable.qtile;
+      #qtile = unstable.qtile;
       hyprland = unstable.hyprland;
+      #openusd = unstable.openusd;
     })
   ];
   # The home.packages option allows you to install Nix packages into your
@@ -53,24 +54,16 @@ in
   home.packages = with pkgs; [
 
     #cli-programs
-    htop
     gotop
     ncdu
     duf
-    zoxide
-    fzf
-    fd
-    exa
-    bat
-    ripgrep
-    tealdeer
     ranger
     just
     #podman
     #distrobox
 
     # cli productivity
-    taskwarrior
+    taskwarrior3
     vit
     #hledger
     #hledger-web
@@ -96,15 +89,16 @@ in
     wordnet
 
     # Testing tiling WMs
-    picom-next
-    leftwm
-    qtile
+    #qtile
     rofi
     nitrogen
     dunst
 
-    openusd
+    #openusd
     #chromium
+    xfce.thunar
+    xfce.thunar-volman
+    xfce.catfish
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -181,17 +175,17 @@ in
   programs.home-manager.enable = true;
 
   xdg.desktopEntries = {
-    blender = {
-      name = "Blender";
-      genericName = "3D modeler";
-      comment = "(nixGL) 3D modeling, animation, rendering and post-production";
-      exec = "nixGL blender %f";
-      icon = "blender";
-      terminal = false;
-      type = "Application";
-      categories = ["Graphics"];
-      mimeType = ["application/x-blender"];
-    };
+    #blender = {
+    #  name = "Blender";
+    #  genericName = "3D modeler";
+    #  comment = "(nixGL) 3D modeling, animation, rendering and post-production";
+    #  exec = "nixGL blender %f";
+    #  icon = "blender";
+    #  terminal = false;
+    #  type = "Application";
+    #  categories = ["Graphics"];
+    #  mimeType = ["application/x-blender"];
+    #};
   };
 
   programs.fish = {
@@ -245,6 +239,52 @@ in
       lua = { disabled = true; };
       perl = { detect_extensions = ["pl" "pm"]; };
     };
+  };
+
+  programs.zoxide = {
+    enable = true;
+  };
+
+  programs.fd = {
+    enable = true;
+    hidden = true; #Add -H flag by deffault
+  };
+
+  programs.fzf = {
+    enable = true;
+    tmux = {
+      enableShellIntegration = true;
+    };
+  };
+
+  programs.eza = {
+    enable = true;
+    icons = true;
+    extraOptions = [];
+  };
+
+  programs.bat = {
+    enable = true;
+    config = { };
+  };
+
+  programs.ripgrep = {
+    enable = true;
+    arguments = [ ];
+  };
+
+  programs.tealdeer = {
+    enable = true;
+    settings = {
+      updates = {
+        auto_update = true;
+      };
+    };
+  };
+
+  programs.htop = {
+    enable = true;
+    settings = { };
   };
 
   programs.tmux = {
@@ -385,6 +425,13 @@ in
         f = "finder";
         v = "imgview";
       };
+    };
+  };
+
+  services.syncthing = {
+    enable = true;
+    tray = {
+      enable = false;
     };
   };
 
